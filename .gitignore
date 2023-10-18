@@ -1,6 +1,7 @@
 # Logs
 # dependencies
 /node_modules
+/back-end/node_modules
 package-lock.json
 yarn.lock
 
