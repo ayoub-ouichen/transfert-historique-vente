@@ -12,7 +12,7 @@ export default function Home() {
     }
     let tab = []
     for (let index = 0; index < 5; index++) {
-       let secteur = new Secteur()
+        let secteur = new Secteur()
         tab.push(secteur)
     }
     const [tableData, setTableData] = useState(tab);
@@ -20,15 +20,19 @@ export default function Home() {
     const [db_destination, setDB_destination] = useState([]);
     const [db_source, setDB_source] = useState([]);
     const [secteurList, setSecteurList] = useState([]);
-    const [oldSecteurList, setOldSecteurList] = useState([]);
-    const [newSecteurList, setNewSecteurList] = useState([]);
+    const [secteurs, setSecteurs] = useState([]);
+    var oldSecteurList = [];
+    var newSecteurList = [];
+    
 
     function getOldSecteur() {
         if(oldSecteurList.length == 0) {
             API.post(URL + 'agence/getSecteur', parametres)
             .then(function (response) {
             // handle success
-            setOldSecteurList(response.data.secteurs);
+            oldSecteurList = []
+            oldSecteurList.push(response.data.secteurs);
+            setSecteurs(...oldSecteurList, ...newSecteurList);
             })
             .catch(function (error) {
             // handle error
@@ -45,7 +49,10 @@ export default function Home() {
             API.post(URL + 'agence/getSecteur', parametres)
             .then(function (response) {
             // handle success
-            setNewSecteurList(response.data.secteurs);
+            newSecteurList = []
+            newSecteurList.push(response.data.secteurs);
+            console.log(newSecteurList);
+            setSecteurs(...oldSecteurList, ...newSecteurList);
             })
             .catch(function (error) {
             // handle error
@@ -91,7 +98,7 @@ export default function Home() {
       let parametresCopy = parametres
       parametresCopy[index] = value
       setParametres(parametresCopy)
-      index == 'source_id' ? getOldSecteur() : getNewSecteur()
+      index === 'source_id' ? getOldSecteur() : getNewSecteur()
   }
 
   function handleAppliquer() {
@@ -109,22 +116,50 @@ export default function Home() {
     });
   }
  
-  function handleChanges(e, column, index2) {
-    if (column == 'id' || column == 'name') {
-        if(secteurList.find(predicate => predicate[column] == e)){
-            let antiColumn = (column == 'id' ? 'name' : 'id')
-            let tableDataCopy = tableData.slice()
-            tableDataCopy[index2][column] = secteurList.find(predicate => predicate[column] == e)[column]
-            tableDataCopy[index2][antiColumn] = secteurList.find(predicate => predicate[column] == e)[antiColumn]
-            setTableData(tableDataCopy)
-            setSecteurList(tab)
-        } else {
-            setSecteurList(PRODUCTS.filter(predicate => predicate[column].includes(e.toUpperCase() || e.toLowerCase())))
-        }
+  function getAntiColumn(column) {
+    switch (column) {
+        case 'old_code_secteur':
+            return 'old_nom_secteur';
+        case 'old_nom_secteur':
+            return 'old_code_secteur';
+        case 'new_code_secteur':
+            return 'new_nom_secteur';
+        case 'new_nom_secteur':
+            return 'new_code_secteur';
+        default:
+            break;
     }
+  }
+
+  function getColumnOposee(column) {
+    switch (column) {
+        case 'old_code_secteur':
+            return 'new_code_secteur';
+        case 'old_nom_secteur':
+            return 'new_nom_secteur';
+        case 'new_code_secteur':
+            return 'old_code_secteur';
+        case 'new_nom_secteur':
+            return 'old_nom_secteur';
+        default:
+            break;
+    }
+  }
+
+  function handleChanges(e, column, index2) {
+    if(secteurList.find(predicate => predicate[column] == e)){
+        let antiColumn = getAntiColumn(column)
+        let tableDataCopy = tableData.slice()
+        tableDataCopy[index2][column] = secteurList.find(predicate => predicate[column] == e)[column]
+        tableDataCopy[index2][antiColumn] = secteurList.find(predicate => predicate[column] == e)[antiColumn]
+        setTableData(tableDataCopy)
+        setSecteurList(secteurs)
+    } else {
+        setSecteurList(secteurs.filter(predicate => predicate[column].toString().includes(e.toUpperCase() || e.toLowerCase())))
+    }
+    
     let tableDataCopy = tableData.slice()
     tableDataCopy[index2][column] = e
-    tableDataCopy[index2]['valeur'] = tableDataCopy[index2]['prix'] * tableDataCopy[index2]['quantite']
     setTableData(tableDataCopy)
    }
 
@@ -162,7 +197,7 @@ export default function Home() {
                         <div className="input-group mb-3">
                             <label className="input-group-text" htmlFor="inputGroupSelect02">Destination : </label>
                             <select onChange={(e) => handleSelectClick(e.target.value, 'destination_id')} className="form-select" id="inputGroupSelect02">
-                                <option key={1111} value={''}>--- Vide ---</option>
+                                <option key={1112} value={''}>--- Vide ---</option>
                                 {
                                     db_destination.map(db_dst => {
                                         return <option key={db_dst.id} value={db_dst.name}>{db_dst.name}</option>
@@ -193,27 +228,45 @@ export default function Home() {
                                         return (
                                             <tr key={index}>
                                                 <td>
-                                                    <input key={index} onChange={e => handleChanges(e.target.value, 'old_nom_secteur', index)} value={value.old_nom_secteur} className="form-control border-0" type="text" list={'#01' + index}/>
-                                                    <datalist id={'#01' + index}>
+                                                    <input key={'#01' + index} onChange={e => handleChanges(e.target.value, 'old_nom_secteur', index)} value={value.old_nom_secteur} className="form-control border-0" type="text" list={'#001' + index}/>
+                                                    <datalist id={'#001' + index} key={'#001' + index}>
                                                         {
                                                             secteurList.map(secteur => {
-                                                                return <option key={secteur.old_nom_secteur} value={secteur.old_nom_secteur}>{secteur.old_nom_secteur}</option>
+                                                                return <option key={(secteur.old_nom_secteur + secteur.old_code_secteur)} value={secteur.old_nom_secteur}>{secteur.old_nom_secteur}</option>
                                                             })
                                                         }
                                                     </datalist>
                                                 </td>
                                                 <td>
-                                                    <input key={index} onChange={e => handleChanges(e.target.value, 'old_code_secteur', index)} value={value.old_code_secteur} className="form-control border-0" type="text" list={'#02' + index} />
-                                                    <datalist id={'#02' + index}>
+                                                    <input key={'#02' + index} onChange={e => handleChanges(e.target.value, 'old_code_secteur', index)} value={value.old_code_secteur} className="form-control border-0" type="text" list={'#002' + index} />
+                                                    <datalist id={'#002' + index} key={'#002' + index}>
                                                         {
                                                             secteurList.map(secteur => {
-                                                                return <option key={secteur.old_code_secteur} value={secteur.old_code_secteur}>{secteur.old_code_secteur}</option>
+                                                                return <option key={(secteur.old_code_secteur + secteur.old_nom_secteur)} value={secteur.old_code_secteur}>{secteur.old_code_secteur}</option>
                                                             })
                                                         }
                                                     </datalist>
                                                 </td>
-                                                <td><input key={index} onChange={e => handleChanges(e.target.value, 'new_code_secteur', index)} value={value.new_code_secteur} className="form-control border-0" type="text" /></td>
-                                                <td><input key={index} onChange={e => handleChanges(e.target.value, 'new_nom_secteur', index)} value={value.new_nom_secteur} className="form-control border-0" type="text" /></td>
+                                                <td>
+                                                    <input key={'#03' + index} onChange={e => handleChanges(e.target.value, 'new_code_secteur', index)} value={value.new_code_secteur} className="form-control border-0" type="text" list={'#003' + index} />
+                                                    <datalist id={'#003' + index} key={'#003' + index}>
+                                                        {
+                                                            secteurList.map(secteur => {
+                                                                return <option key={(secteur.new_nom_secteur + secteur.new_code_secteur)} value={secteur.new_code_secteur}>{secteur.new_code_secteur}</option>
+                                                            })
+                                                        }
+                                                    </datalist>
+                                                </td>
+                                                <td>
+                                                    <input key={'#04' + index} onChange={e => handleChanges(e.target.value, 'new_nom_secteur', index)} value={value.new_nom_secteur} className="form-control border-0" type="text" list={'#004' + index} />
+                                                    <datalist id={'#004' + index} key={'#004' + index}>
+                                                        {
+                                                            secteurList.map(secteur => {
+                                                                return <option key={(secteur.new_code_secteur + secteur.new_nom_secteur)} value={secteur.new_nom_secteur}>{secteur.new_nom_secteur}</option>
+                                                            })
+                                                        }
+                                                    </datalist>
+                                                </td>
                                             </tr>
                                         )
                                     })

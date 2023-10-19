@@ -1,8 +1,8 @@
 var conx = require('mssql');
 const config = {
-    user: 'PRIVATE',
-    password: 'PRIVATE',
-    server:'PRIVATE',
+    user: 'private',
+    password: 'private',
+    server:'private',
     database: '',
     options: {
         encrypt: true // for encrypted connections

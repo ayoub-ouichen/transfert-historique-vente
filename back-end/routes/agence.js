@@ -16,11 +16,12 @@ router.post('/getSecteur', async (req,res)=>{
   
   try {
     let request = new connection.Request();
+    request.input('param1', connection.VarChar, '');
 
-    let result = await request.query('SELECT code_secteur, nom_secteur FROM ' + agence_src + '.dbo.T_SECTEUR;');
+    let result = await request.query('SELECT code_secteur as old_code_secteur, nom_secteur as old_nom_secteur, @param1 as new_code_secteur, @param1 as new_nom_secteur FROM ' + agence_src + '.dbo.T_SECTEUR WHERE len(nom_secteur) >= 3 AND code_secteur <> 0 AND (nom_secteur is not null AND code_secteur is not null);');
     const oldSecteur = result.recordset;
 
-    let result2 = await request.query('SELECT code_secteur, nom_secteur FROM ' + agence_dst + '.dbo.T_SECTEUR;');
+    let result2 = await request.query('SELECT @param1 as old_code_secteur, @param1 as old_nom_secteur, code_secteur as new_code_secteur, nom_secteur as new_nom_secteur FROM ' + agence_dst + '.dbo.T_SECTEUR WHERE len(nom_secteur) >= 3 AND code_secteur <> 0 AND (nom_secteur is not null AND code_secteur is not null);');
     const newSecteur = result2.recordset;
 
     if ( result.recordset != 0 ) {
