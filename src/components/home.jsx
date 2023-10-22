@@ -4,48 +4,7 @@ import Secteur from './secteur';
 import Header from './header';
 
 export default function Home() {
-    const [visibelty, setVisibelty] = useState(true)
-    // const [db_destination, setDB_destination] = useState([])
-    // const [db_source, setDB_source] = useState([])
-
-    useEffect(() => {
-      first
-    
-      return () => {
-        second
-      }
-    }, [third])
-    
-
-    // if(db_destination.length == 0) {
-    //     API.get(URL + 'agence/getAgences')
-    //     .then(function (response) {
-    //     // handle success
-    //     setDB_destination(response.data);
-    //     })
-    //     .catch(function (error) {
-    //     // handle error
-    //     console.log(error);
-    //     })
-    //     .finally(function () {
-    //     // always executed
-    //     });
-    // }
-
-    // if (db_source.length == 0) {
-    //     API.get(URL + 'agence/getAgences')
-    //     .then(function (response) {
-    //         // handle success
-    //         setDB_source(response.data);
-    //     })
-    //     .catch(function (error) {
-    //         // handle error
-    //         console.log(error);
-    //     })
-    //     .finally(function () {
-    //         // always executed
-    //     });
-    // }
+    const [visibelty, setVisibelty] = useState(1)
 
   return (
     <div className="container">
@@ -54,20 +13,36 @@ export default function Home() {
                 <Header />
                 <ul className="nav nav-tabs">
                     <li className="nav-item">
-                        <a className={"nav-link" + (visibelty ? " active" : "")}  style={{cursor: 'pointer'}} onClick={() => setVisibelty(!visibelty)}>Nouveau</a>
+                        <a className={"nav-link" + (visibelty == 1 ? " active" : "")}  style={{cursor: 'pointer'}} onClick={() => setVisibelty(1)}>Secteur</a>
                     </li>
                     <li className="nav-item">
-                        <a className={"nav-link" + (!visibelty ? " active" : "")} style={{cursor: 'pointer'}} onClick={() => setVisibelty(!visibelty)}>Historique</a>
+                        <a className={"nav-link" + (visibelty == 2 ? " active" : "")} style={{cursor: 'pointer'}} onClick={() => setVisibelty(2)}>Vendeur</a>
+                    </li>
+                    <li className="nav-item">
+                        <a className={"nav-link" + (visibelty == 3 ? " active" : "")} style={{cursor: 'pointer'}} onClick={() => setVisibelty(3)}>Superviseur</a>
+                    </li>
+                    <li className="nav-item">
+                        <a className={"nav-link" + (visibelty == 4 ? " active" : "")} style={{cursor: 'pointer'}} onClick={() => setVisibelty(4)}>Preview Chargement</a>
                     </li>
                 </ul>
-                <div className={"card  border-top-0" + (!visibelty ? " visually-hidden" : "")}>
+                <div className={"card  border-top-0" + (visibelty != 1 ? " visually-hidden" : "")}>
                     <div className="card-body pt-4">
                         <Secteur />
                     </div>
                 </div>
-                <div className={"card border-top-0" + (visibelty ? " visually-hidden" : "")}>
+                <div className={"card border-top-0" + (visibelty != 2 ? " visually-hidden" : "")}>
                     <div className="card-body">
-                        <Secteur />
+                        {/* <PenduleForcee /> */}
+                    </div>
+                </div>
+                <div className={"card border-top-0" + (visibelty != 3 ? " visually-hidden" : "")}>
+                    <div className="card-body">
+                        {/* <MethodeEulerPA /> */}
+                    </div>
+                </div>
+                <div className={"card border-top-0" + (visibelty != 4 ? " visually-hidden" : "")}>
+                    <div className="card-body">
+                        {/* <MethodeEulerPF /> */}
                     </div>
                 </div>
             </div>

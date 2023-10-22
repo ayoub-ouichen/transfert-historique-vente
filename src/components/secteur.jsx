@@ -1,75 +1,43 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import SecteurClasse from '../classes/secteurClasse'
+import { fetchSecteurs, getNewSecteurs, getOldSecteurs, getParameters, handleSelectClick } from '../featuers/dataFlowSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import API from '../services/api'
 
 export default function Secteur() {
-    const URL = 'http://localhost:6523/';
-    // let p = {
-    //     source_id : '',
-    //     destination_id : '',
-    //     date_debut : '',
-    //     date_fin : ''
-    // }
-    // const [parametres, setParametres] = useState(p)
 
     let tab = []
     for (let index = 0; index < 5; index++) {
-        let secteur = new Secteur()
+        let secteur = new SecteurClasse()
         tab.push(secteur)
     }
+    const dispatch = useDispatch()
     const [tableData, setTableData] = useState(tab);
     const [secteurList, setSecteurList] = useState([]);
-    const [oldSecteurList, setOldSecteurList] = useState([]);
-    const [newSecteurList, setNewSecteurList] = useState([]);
+    const oldSecteurs = useSelector(getOldSecteurs)
+    const newSecteurs = useSelector(getNewSecteurs)
+    const parameters = useSelector(getParameters)
 
-    function getOldSecteur() {
-        API.post(URL + 'agence/getSecteur', parametres)
-        .then(function (response) {
-        // handle success
-        setOldSecteurList(response.data.old_secteurs);
-        })
-        .catch(function (error) {
-        // handle error
-        console.log(error);
-        })
-        .finally(function () {
-        // always executed
-        });
-    }
+    useEffect(() => {
+        if (parameters.source_id != '' || parameters.destination_id != '') {
+            dispatch(fetchSecteurs(parameters))
+            console.log('good');
+        }
+    //   return () => {
+    //   }
 
-    function getNewSecteur() {
-        API.post(URL + 'agence/getSecteur', parametres)
-        .then(function (response) {
-        // handle success
-        setNewSecteurList(response.data.new_secteurs);
-        })
-        .catch(function (error) {
-        // handle error
-        console.log(error);
-        })
-        .finally(function () {
-        // always executed
-        });
-    }
-
-    function handleSelectClick(value, index) {
-        let parametresCopy = parametres
-        parametresCopy[index] = value
-        setParametres(parametresCopy)
-        index === 'source_id' ? getOldSecteur() : getNewSecteur()
-    }
+    }, [parameters.source_id, parameters.destination_id])
   
     function handleAppliquer() {
-      // API.post(URL + 'chargement/getData', parametres)
-      // .then(function (response) {
-      //     // handle success
-      //     console.log(response.data);
-      // })
-      // .catch(function (error) {
-      //     // handle error
-      //     console.log(error);
-      // })
-      // .finally(function () {
-      //     // always executed
-      // });
+        //Verifier que tableData est remplier  
+        API.post('http://localhost:6523/agence/getSecteur', parameters)
+        .then(function (response) {
+            console.log(response);
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+        
     }
    
     function getAntiColumn(column) {
@@ -87,23 +55,23 @@ export default function Secteur() {
       }
     }
   
-    function getColumnOposee(column) {
-      switch (column) {
-          case 'old_code_secteur':
-              return 'new_code_secteur';
-          case 'old_nom_secteur':
-              return 'new_nom_secteur';
-          case 'new_code_secteur':
-              return 'old_code_secteur';
-          case 'new_nom_secteur':
-              return 'old_nom_secteur';
-          default:
-              break;
-      }
-    }
+    // function getColumnOposee(column) {
+    //   switch (column) {
+    //       case 'old_code_secteur':
+    //           return 'new_code_secteur';
+    //       case 'old_nom_secteur':
+    //           return 'new_nom_secteur';
+    //       case 'new_code_secteur':
+    //           return 'old_code_secteur';
+    //       case 'new_nom_secteur':
+    //           return 'old_nom_secteur';
+    //       default:
+    //           break;
+    //   }
+    // }
 
     function handleChanges(e, column, index2) {
-        let secteurs = column.substring(0,3) == 'new' ? newSecteurList.slice() : oldSecteurList.slice()
+        let secteurs = column.substring(0,3) == 'new' ? newSecteurs.slice() : oldSecteurs.slice()
         if(secteurList.find(predicate => predicate[column] == e)){
             let antiColumn = getAntiColumn(column)
             let tableDataCopy = tableData.slice()
@@ -121,7 +89,7 @@ export default function Secteur() {
        }
     
       function addLine(i) {
-        let secteur =  new Secteur()
+        let secteur =  new SecteurClasse()
         if (i == -1) {
             let tableDataCopy = tableData.slice()
             tableDataCopy.pop()
@@ -214,18 +182,18 @@ export default function Secteur() {
             <div className="col">
                 <div className="input-group mb-3">
                     <label className="input-group-text" htmlFor="from-date">Date Début : </label>
-                    <input onChange={(e) => handleSelectClick(e.target.value, 'date_debut')} type="date" className="form-control" id="from-date" aria-describedby="date-design-prepend" />
+                    <input onChange={(e) => dispatch(handleSelectClick([e.target.value, 'date_debut']))} type="date" className="form-control" id="from-date" aria-describedby="date-design-prepend" />
                 </div>
             </div>
             <div className="col">
                 <div className="input-group mb-3">
                     <label className="input-group-text" htmlFor="from-date">Date Fin : </label>
-                    <input onChange={(e) => handleSelectClick(e.target.value, 'date_fin')} type="date" className="form-control" id="from-date" aria-describedby="date-design-prepend" />
+                    <input onChange={(e) => dispatch(handleSelectClick([e.target.value, 'date_fin']))} type="date" className="form-control" id="from-date" aria-describedby="date-design-prepend" />
                 </div>
             </div>
             <div className="col">
                 <div className="input-group mb-3">
-                    <input type="button" onClick={() => handleAppliquer(parametres)} className="form-control btn btn-secondary" value={'Appliquer'} />
+                    <input type="button" onClick={() => handleAppliquer()} className="form-control btn btn-secondary" value={'Appliquer'} />
                 </div>
             </div>
         </div>

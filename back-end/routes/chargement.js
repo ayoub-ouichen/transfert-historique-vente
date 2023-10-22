@@ -15,22 +15,34 @@ router.post('/getData', async (req,res)=>{
     request.input('param2', connection.DateTime, date_debut);
     request.input('param3', connection.DateTime, date_fin);
 
-    let result = await request.query('SELECT * FROM ' + agence_src + '.dbo.T_CHARGEMENT WHERE DATE_CHARGEMENT BETWEEN @param2 and @param3;');
-    const chargement = result.recordset;
-    const secteurs = [];
-    const vendeurs = [];
-    const superviseurs = [];
+    let result1 = await request.query('SELECT * FROM ' + agence_src + '.dbo.T_CHARGEMENT WHERE DATE_CHARGEMENT BETWEEN @param2 and @param3;');
+    let result2 = await request.query('SELECT * FROM ' + agence_dst + '.dbo.T_CHARGEMENT WHERE DATE_CHARGEMENT BETWEEN @param2 and @param3;');
+    
+    const chargement_src = result1.recordset;
+    const chargement_dst = result2.recordset;
+    const secteurs_src = [];
+    const vendeurs_src = [];
+    const superviseurs_src = [];
+    const secteurs_dst = [];
+    const vendeurs_dst = [];
+    const superviseurs_dst = [];
 
-    let p = chargement.forEach((value, index, array) => {
-      secteurs.indexOf(value.CODE_SECTEUR) != -1 ? '' : secteurs.push(value.CODE_SECTEUR) 
-      vendeurs.indexOf(value.CODE_VENDEUR) != -1 ? '' : vendeurs.push(value.CODE_VENDEUR) 
-      superviseurs.indexOf(value.CODE_SUPERVISEUR) != -1 ? '' : superviseurs.push(value.CODE_SUPERVISEUR) 
+    let parcours_src = chargement_src.forEach((value, index, array) => {
+      secteurs_src.indexOf(value.CODE_SECTEUR) != -1 ? '' : secteurs_src.push(value.CODE_SECTEUR) 
+      vendeurs_src.indexOf(value.CODE_VENDEUR) != -1 ? '' : vendeurs_src.push(value.CODE_VENDEUR) 
+      superviseurs_src.indexOf(value.CODE_SUPERVISEUR) != -1 ? '' : superviseurs_src.push(value.CODE_SUPERVISEUR) 
+    })
+
+    let parcours_dst = chargement_dst.forEach((value, index, array) => {
+      secteurs_dst.indexOf(value.CODE_SECTEUR) != -1 ? '' : secteurs_dst.push(value.CODE_SECTEUR) 
+      vendeurs_dst.indexOf(value.CODE_VENDEUR) != -1 ? '' : vendeurs_dst.push(value.CODE_VENDEUR) 
+      superviseurs_dst.indexOf(value.CODE_SUPERVISEUR) != -1 ? '' : superviseurs_dst.push(value.CODE_SUPERVISEUR) 
     })
     
     // Rchercher les noms des (Secteurs, Vendeurs, Superviseurs)
     let request2 = new connection.Request();
-    let result2 = await request2.query('SELECT code_secteur,nom_secteur FROM ' + agence_src + '.dbo.T_SECTEUR WHERE code_secteur in(' + secteurs + ');');
-    const nom_secteur = result2.recordset;
+    let result3 = await request2.query('SELECT code_secteur,nom_secteur FROM ' + agence_src + '.dbo.T_SECTEUR WHERE code_secteur in(' + secteurs + ');');
+    const nom_secteur = result3.recordset;
     console.log(nom_secteur);
 
     if (result.recordset != 0) {
