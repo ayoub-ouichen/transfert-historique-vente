@@ -1,8 +1,10 @@
 var conx = require('mssql');
+require('dotenv').config();
+
 const config = {
-    user: 'devouichen',
-    password: 'devouichen',
-    server:'10.7.0.90',
+    user: process.env.VITE_DATABASE_USER,
+    password: process.env.VITE_DATABASE_MDP,
+    server:process.env.VITE_DATABASE_SERVER,
     database: '',
     options: {
         encrypt: true // for encrypted connections

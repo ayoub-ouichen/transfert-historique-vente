@@ -1,55 +1,76 @@
 import React, { useEffect, useState } from 'react'
-import SecteurClasse from '../classes/secteurClasse'
-import { fetchSecteurs, getNewSecteurs, getOldSecteurs, getParameters, handleSelectClick } from '../featuers/dataFlowSlice'
+import CoupleClasse from '../classes/CoupleClasse'
 import { useDispatch, useSelector } from 'react-redux'
 import API from '../services/api'
+import {
+    fetchSecteurs,
+    getNewSecteurs,
+    getOldSecteurs,
+    getParameters,
+    handleSelectClick,
+    setChargementRubrique
+} from '../featuers/dataFlowSlice'
 
 export default function Secteur() {
-
-    let tab = []
-    for (let index = 0; index < 5; index++) {
-        let secteur = new SecteurClasse()
-        tab.push(secteur)
-    }
-    const dispatch = useDispatch()
-    const [tableData, setTableData] = useState(tab);
-    const [secteurList, setSecteurList] = useState([]);
+    const [secteurList, setSecteurList] = useState([])
+    const [wrongLines, setWrongLines] = useState([])
     const oldSecteurs = useSelector(getOldSecteurs)
     const newSecteurs = useSelector(getNewSecteurs)
     const parameters = useSelector(getParameters)
+    const dispatch = useDispatch()
+    
+    let tab = []
+    for (let index = 0; index < 5; index++) {
+        let secteur = new CoupleClasse()
+        tab.push(secteur)
+    }
+    const [tableData, setTableData] = useState(tab)
 
     useEffect(() => {
         if (parameters.source_id != '' || parameters.destination_id != '') {
-            dispatch(fetchSecteurs(parameters))
-            console.log('good');
+            if (oldSecteurs.length == 0 || newSecteurs.length == 0) {
+                dispatch(fetchSecteurs(parameters))
+            }
         }
+
     //   return () => {
     //   }
 
     }, [parameters.source_id, parameters.destination_id])
-  
+
     function handleAppliquer() {
-        //Verifier que tableData est remplier  
-        API.post('http://localhost:6523/agence/getSecteur', parameters)
-        .then(function (response) {
-            console.log(response);
-        })
-        .catch(function (error) {
-            console.log(error);
-        });
+        let indexs = tableData.map((value, index, array) => {
+            let count = 0
+            array[index].old_code === '' && count++;
+            array[index].old_nom === '' && count++;
+            array[index].new_code === '' && count++;
+            array[index].new_nom === '' && count++;
+            return count > 0 ? index : null;
+        }).filter(predicate => predicate != null)
+
+        setWrongLines(indexs)
         
+        if (indexs.length == 0) {
+            API.post('http://localhost:6523/chargement/getVendeurSuperviseur', {params: parameters, data: tableData})
+            .then(function (response) {
+                dispatch(setChargementRubrique(response.data))
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        }
     }
    
     function getAntiColumn(column) {
       switch (column) {
-          case 'old_code_secteur':
-              return 'old_nom_secteur';
-          case 'old_nom_secteur':
-              return 'old_code_secteur';
-          case 'new_code_secteur':
-              return 'new_nom_secteur';
-          case 'new_nom_secteur':
-              return 'new_code_secteur';
+          case 'old_code':
+              return 'old_nom';
+          case 'old_nom':
+              return 'old_code';
+          case 'new_code':
+              return 'new_nom';
+          case 'new_nom':
+              return 'new_code';
           default:
               break;
       }
@@ -57,14 +78,14 @@ export default function Secteur() {
   
     // function getColumnOposee(column) {
     //   switch (column) {
-    //       case 'old_code_secteur':
-    //           return 'new_code_secteur';
-    //       case 'old_nom_secteur':
-    //           return 'new_nom_secteur';
-    //       case 'new_code_secteur':
-    //           return 'old_code_secteur';
-    //       case 'new_nom_secteur':
-    //           return 'old_nom_secteur';
+    //       case 'old_code':
+    //           return 'new_code';
+    //       case 'old_nom':
+    //           return 'new_nom';
+    //       case 'new_code':
+    //           return 'old_code';
+    //       case 'new_nom':
+    //           return 'old_nom';
     //       default:
     //           break;
     //   }
@@ -89,7 +110,7 @@ export default function Secteur() {
        }
     
       function addLine(i) {
-        let secteur =  new SecteurClasse()
+        let secteur =  new CoupleClasse()
         if (i == -1) {
             let tableDataCopy = tableData.slice()
             tableDataCopy.pop()
@@ -121,43 +142,43 @@ export default function Secteur() {
                         {
                             tableData.map((value, index, array) => {
                                 return (
-                                    <tr key={index}>
+                                    <tr key={index} className={ (wrongLines.find(predicate => predicate == index) + 1) ? 'table-danger border-dark' : '' }>
                                         <td>
-                                            <input key={'#01' + index} onChange={e => handleChanges(e.target.value, 'old_nom_secteur', index)} value={value.old_nom_secteur} className="form-control border-0" type="text" list={'#001' + index}/>
-                                            <datalist id={'#001' + index} key={'#001' + index}>
+                                            <input key={'#sc_01' + index} onChange={e => handleChanges(e.target.value, 'old_nom', index)} value={value.old_nom} className="form-control border-0" type="text" list={'#sc_001' + index}/>
+                                            <datalist id={'#sc_001' + index} key={'#sc_001' + index}>
                                                 {
                                                     secteurList.map((secteur, s_index) => {
-                                                        return <option key={('#0001' + s_index)} value={secteur.old_nom_secteur}>{secteur.old_nom_secteur}</option>
+                                                        return <option key={('#sc_0001' + s_index)} value={secteur.old_nom}>{secteur.old_nom}</option>
                                                     })
                                                 }
                                             </datalist>
                                         </td>
                                         <td>
-                                            <input key={'#02' + index} onChange={e => handleChanges(e.target.value, 'old_code_secteur', index)} value={value.old_code_secteur} className="form-control border-0" type="text" list={'#002' + index} />
-                                            <datalist id={'#002' + index} key={'#002' + index}>
+                                            <input key={'#sc_02' + index} onChange={e => handleChanges(e.target.value, 'old_code', index)} value={value.old_code} className="form-control border-0" type="text" list={'#sc_002' + index} />
+                                            <datalist id={'#sc_002' + index} key={'#sc_002' + index}>
                                                 {
                                                     secteurList.map((secteur, s_index) => {
-                                                        return <option key={('#0002' + s_index)} value={secteur.old_code_secteur}>{secteur.old_code_secteur}</option>
+                                                        return <option key={('#sc_0002' + s_index)} value={secteur.old_code}>{secteur.old_code}</option>
                                                     })
                                                 }
                                             </datalist>
                                         </td>
                                         <td>
-                                            <input key={'#03' + index} onChange={e => handleChanges(e.target.value, 'new_code_secteur', index)} value={value.new_code_secteur} className="form-control border-0" type="text" list={'#003' + index} />
-                                            <datalist id={'#003' + index} key={'#003' + index}>
+                                            <input key={'#sc_03' + index} onChange={e => handleChanges(e.target.value, 'new_code', index)} value={value.new_code} className="form-control border-0" type="text" list={'#sc_003' + index} />
+                                            <datalist id={'#sc_003' + index} key={'#sc_003' + index}>
                                                 {
                                                     secteurList.map((secteur, s_index) => {
-                                                        return <option key={('#0003' + s_index)} value={secteur.new_code_secteur}>{secteur.new_code_secteur}</option>
+                                                        return <option key={('#sc_0003' + s_index)} value={secteur.new_code}>{secteur.new_code}</option>
                                                     })
                                                 }
                                             </datalist>
                                         </td>
                                         <td>
-                                            <input key={'#04' + index} onChange={e => handleChanges(e.target.value, 'new_nom_secteur', index)} value={value.new_nom_secteur} className="form-control border-0" type="text" list={'#004' + index} />
-                                            <datalist id={'#004' + index} key={'#004' + index}>
+                                            <input key={'#sc_04' + index} onChange={e => handleChanges(e.target.value, 'new_nom', index)} value={value.new_nom} className="form-control border-0" type="text" list={'#sc_004' + index} />
+                                            <datalist id={'#sc_004' + index} key={'#sc_004' + index}>
                                                 {
                                                     secteurList.map((secteur, s_index) => {
-                                                        return <option key={('#0004' + s_index)} value={secteur.new_nom_secteur}>{secteur.new_nom_secteur}</option>
+                                                        return <option key={('#sc_0004' + s_index)} value={secteur.new_nom}>{secteur.new_nom}</option>
                                                     })
                                                 }
                                             </datalist>

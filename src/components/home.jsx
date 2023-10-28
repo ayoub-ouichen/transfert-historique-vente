@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import API from '../services/api'
 import Secteur from './secteur';
 import Header from './header';
+import Vendeur from './vendeur';
+import Superviseur from './superviseur';
 
 export default function Home() {
     const [visibelty, setVisibelty] = useState(1)
@@ -32,12 +34,12 @@ export default function Home() {
                 </div>
                 <div className={"card border-top-0" + (visibelty != 2 ? " visually-hidden" : "")}>
                     <div className="card-body">
-                        {/* <PenduleForcee /> */}
+                        <Vendeur />
                     </div>
                 </div>
                 <div className={"card border-top-0" + (visibelty != 3 ? " visually-hidden" : "")}>
                     <div className="card-body">
-                        {/* <MethodeEulerPA /> */}
+                    <Superviseur />
                     </div>
                 </div>
                 <div className={"card border-top-0" + (visibelty != 4 ? " visually-hidden" : "")}>
